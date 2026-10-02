@@ -11,6 +11,8 @@ pip install -r requirements.txt
 set ANTHROPIC_API_KEY=...
 python main.py "A5 poster: red sun over blue mountains, title 'Summer'"
 ```
+Or just double-click `run.bat` (sets up venv, asks for key and prompt; `run.bat "prompt" --dry-run` also works).
+
 `--dry-run` runs without CorelDRAW (records calls only). `pytest` runs the tests.
 
 ## Layout
