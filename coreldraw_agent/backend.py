@@ -32,6 +32,23 @@ def _rgb(hex_color: str) -> tuple[int, int, int]:
     return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
 
 
+def close_subpath(sub, first) -> None:
+    """Close a CorelDRAW SubPath. The method name differs between versions / COM binding
+    modes, so try the known spellings and fall back to a closing line segment."""
+    for name in ("CloseSubPath", "Close"):
+        try:
+            getattr(sub, name)()
+            return
+        except Exception:
+            pass
+    try:
+        sub.Closed = True
+        return
+    except Exception:
+        pass
+    sub.AppendLineSegment(*first)  # visually closed at least
+
+
 class CorelBackend:
     def __init__(self, prog_id: str = "CorelDRAW.Application") -> None:
         import win32com.client  # type: ignore
@@ -78,7 +95,7 @@ class CorelBackend:
         sub = curve.CreateSubPath(*points[0])
         for p in points[1:]:
             sub.AppendLineSegment(*p)
-        sub.CloseSubPath()
+        close_subpath(sub, points[0])
         return self._style(self.layer.CreateCurve(curve), **style)
 
     def compound(self, paths, **style):
@@ -88,7 +105,7 @@ class CorelBackend:
             sub = curve.CreateSubPath(*pts[0])
             for p in pts[1:]:
                 sub.AppendLineSegment(*p)
-            sub.CloseSubPath()
+            close_subpath(sub, pts[0])
         return self._style(self.layer.CreateCurve(curve), **style)
 
     def text(self, x, y, text, size, fill=None, **style):

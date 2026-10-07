@@ -13,3 +13,25 @@ def test_errors_are_returned_not_raised():
     b = MockBackend()
     assert dispatch(b, "nope", {}).startswith("error")
     assert dispatch(b, "rectangle", {"x": 1}).startswith("error")
+
+
+def test_close_subpath_fallbacks():
+    from coreldraw_agent.backend import close_subpath
+
+    class NoMethods:  # mimics a COM object that rejects CloseSubPath/Close
+        def __init__(self): self.pts = []
+        def AppendLineSegment(self, x, y): self.pts.append((x, y))
+        def __getattr__(self, n): raise AttributeError(n)
+        def __setattr__(self, n, v):
+            if n == "Closed": raise AttributeError(n)
+            object.__setattr__(self, n, v)
+
+    class HasClosed(NoMethods):
+        def __setattr__(self, n, v): object.__setattr__(self, n, v)
+
+    a = NoMethods()
+    close_subpath(a, (1, 2))
+    assert a.pts == [(1, 2)]
+    b = HasClosed()
+    close_subpath(b, (1, 2))
+    assert b.Closed is True and b.pts == []
