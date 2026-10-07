@@ -20,6 +20,7 @@ class Backend(Protocol):
     def line(self, x1: float, y1: float, x2: float, y2: float, **style) -> str: ...
     def polygon(self, points: list[tuple[float, float]], **style) -> str: ...
     def text(self, x: float, y: float, text: str, size: float, **style) -> str: ...
+    def compound(self, paths: list[list[tuple[float, float]]], **style) -> str: ...
     def save(self, path: str) -> str: ...
     def export(self, path: str) -> str: ...
 
@@ -80,6 +81,16 @@ class CorelBackend:
         sub.CloseSubPath()
         return self._style(self.layer.CreateCurve(curve), **style)
 
+    def compound(self, paths, **style):
+        """One shape from several closed subpaths (outline + holes), even-odd."""
+        curve = self.app.CreateCurve(self.doc)
+        for pts in paths:
+            sub = curve.CreateSubPath(*pts[0])
+            for p in pts[1:]:
+                sub.AppendLineSegment(*p)
+            sub.CloseSubPath()
+        return self._style(self.layer.CreateCurve(curve), **style)
+
     def text(self, x, y, text, size, fill=None, **style):
         shape = self.layer.CreateArtisticText(x, y, text)
         shape.Text.FontProperties.Size = size
@@ -124,6 +135,9 @@ class MockBackend:
 
     def text(self, x, y, text, size, **s):
         return self._rec("text", x, y, text, size, **s)
+
+    def compound(self, paths, **s):
+        return self._rec("compound", paths, **s)
 
     def save(self, path):
         return self._rec("save", path)

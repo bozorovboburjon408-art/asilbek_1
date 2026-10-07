@@ -33,3 +33,11 @@ To add a capability, add a method to the backends and a schema in `tools.py`.
 ## Test machine
 Windows 10/11 with CorelDRAW installed (2018+), internet access, an Anthropic API key.
 Start CorelDRAW once first so any licence/welcome dialogs are dismissed.
+
+## CO2 laser mode (image -> cut contours)
+Dark shape on a light (or transparent) background -> closed cut contours; holes stay inside their part
+(one compound path = outline + cutouts). Output: `<image>.laser.svg` in the CorelDRAW layout
+(700x600 mm sheet, 1 unit = 0.01 mm, `fil0 str0`) and, unless dry-run, the same drawn in CorelDRAW.
+No API key needed. GUI: "Lazer" box. CLI: `python main.py --image part.png --width 200 --material 3`.
+Warns about holes smaller than the material thickness. Not handled: kerf compensation, nesting of
+several images, photos with gradients (use a clean silhouette/line art; try `--invert` if nothing is found).

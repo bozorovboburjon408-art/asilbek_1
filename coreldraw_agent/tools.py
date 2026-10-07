@@ -35,6 +35,11 @@ TOOLS: list[dict[str, Any]] = [
           {"points": {"type": "array", "minItems": 3,
                       "items": {"type": "array", "items": _N, "minItems": 2, "maxItems": 2}}},
           ["points"]),
+    _tool("compound", "Draw ONE closed shape from several subpaths: the outer outline first, then holes "
+          "(even-odd). Use for laser-cut parts with cutouts.",
+          {"paths": {"type": "array", "items": {"type": "array", "minItems": 3,
+                     "items": {"type": "array", "items": _N, "minItems": 2, "maxItems": 2}}}},
+          ["paths"]),
     _tool("text", "Add artistic text with baseline-left at (x, y).",
           {"x": _N, "y": _N, "text": {"type": "string"}, "size": {"type": "number", "description": "Font size in pt"}},
           ["x", "y", "text", "size"]),
@@ -46,6 +51,8 @@ TOOLS: list[dict[str, Any]] = [
 def dispatch(backend: Backend, name: str, args: dict[str, Any]) -> str:
     """Run one tool call; always returns a string (errors included) for the model."""
     try:
+        if name == "compound":
+            args = {**args, "paths": [[tuple(p) for p in sub] for sub in args["paths"]]}
         if name == "polygon":
             args = {**args, "points": [tuple(p) for p in args["points"]]}
         fn = getattr(backend, name, None)
