@@ -22,3 +22,14 @@ Or just double-click `run.bat` (sets up venv, asks for key and prompt; `run.bat 
 - `main.py` – CLI
 
 To add a capability, add a method to the backends and a schema in `tools.py`.
+
+## Desktop app (.exe)
+`gui.py` is a small window (API key, prompt, live log). To get `CorelAgent.exe`:
+- **GitHub (automatic):** every push runs `.github/workflows/build.yml` on Windows, runs tests and
+  uploads `CorelAgent.exe` (Actions -> run -> Artifacts). Pushes to `main` also update the
+  **latest** release; tags `v*` create a versioned release.
+- **Locally:** run `build_exe.bat` -> `dist\CorelAgent.exe`.
+
+## Test machine
+Windows 10/11 with CorelDRAW installed (2018+), internet access, an Anthropic API key.
+Start CorelDRAW once first so any licence/welcome dialogs are dismissed.

@@ -1,0 +1,42 @@
+name: build-exe
+
+on:
+  push:
+    branches: [main, "claude/**"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pyinstaller
+      - run: python -m pytest -q
+      - run: pyinstaller --noconfirm --onefile --windowed --name CorelAgent --hidden-import win32com.client --hidden-import pythoncom gui.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CorelAgent-exe
+          path: dist/CorelAgent.exe
+
+      # Rolling "latest" release: always the newest exe from main.
+      - name: Publish latest release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: CorelAgent (latest)
+          prerelease: true
+          files: dist/CorelAgent.exe
+
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/CorelAgent.exe
